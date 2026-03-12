@@ -1,0 +1,93 @@
+// Prisma Schema — Candidate Management Module
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Admin ───────────────────────────────────────────────────
+model Admin {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  @@map("admins")
+}
+
+// ─── Country Master ──────────────────────────────────────────
+model Country {
+  id          Int       @id @default(autoincrement())
+  countryName String    @unique
+  status      Status    @default(active)
+  createdAt   DateTime  @default(now())
+
+  candidates  Candidate[]
+
+  @@map("countries")
+}
+
+// ─── Qualification Master ────────────────────────────────────
+model Qualification {
+  id        Int       @id @default(autoincrement())
+  qualName  String    @unique
+  status    Status    @default(active)
+  createdAt DateTime  @default(now())
+
+  candidates Candidate[]
+
+  @@map("qualifications")
+}
+
+// ─── Designation Master ──────────────────────────────────────
+model Designation {
+  id        Int       @id @default(autoincrement())
+  desigName String    @unique
+  status    Status    @default(active)
+  createdAt DateTime  @default(now())
+
+  candidates Candidate[]
+
+  @@map("designations")
+}
+
+// ─── Candidate ───────────────────────────────────────────────
+model Candidate {
+  id               Int               @id @default(autoincrement())
+  firstName        String
+  lastName         String
+  email            String            @unique
+  phone            String
+  passwordHash     String?
+  status           CandidateStatus   @default(inactive)
+  activationToken  String?           @unique
+  createdAt        DateTime          @default(now())
+
+  countryId        Int?
+  qualificationId  Int?
+  designationId    Int?
+
+  country          Country?          @relation(fields: [countryId], references: [id])
+  qualification    Qualification?    @relation(fields: [qualificationId], references: [id])
+  designation      Designation?      @relation(fields: [designationId], references: [id])
+
+  @@map("candidates")
+}
+
+// ─── Enums ───────────────────────────────────────────────────
+enum Status {
+  active
+  inactive
+}
+
+enum CandidateStatus {
+  active
+  inactive
+  pending
+}
